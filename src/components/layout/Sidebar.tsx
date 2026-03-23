@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom"
-import { Map, Settings, Menu, Search, TreePine } from "lucide-react"
+import { Map, Settings, Menu, Search, TreePine, Layers } from "lucide-react"
 import { useAppStore } from "@/store/useAppStore"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -14,15 +14,15 @@ export function Sidebar() {
         {isSidebarOpen && (
           <div className="flex items-center gap-2 font-bold text-xl text-primary drop-shadow-sm">
             <div className="bg-primary p-1.5 rounded-lg shadow-sm">
-               <TreePine className="h-5 w-5 text-primary-foreground shrink-0" />
+              <TreePine className="h-5 w-5 text-primary-foreground shrink-0" />
             </div>
             <span>Bantay Bakir</span>
           </div>
         )}
         {!isSidebarOpen && (
-           <div className="mx-auto bg-primary p-1.5 rounded-lg shadow-sm">
-              <TreePine className="h-5 w-5 text-primary-foreground" />
-           </div>
+          <div className="mx-auto bg-primary p-1.5 rounded-lg shadow-sm">
+            <TreePine className="h-5 w-5 text-primary-foreground" />
+          </div>
         )}
         {isSidebarOpen && (
           <Button variant="ghost" size="icon" onClick={toggleSidebar} className="shrink-0">
@@ -33,9 +33,9 @@ export function Sidebar() {
 
       {!isSidebarOpen && (
         <div className="flex justify-center mt-2">
-            <Button variant="ghost" size="icon" onClick={toggleSidebar} className="shrink-0">
-              <Menu className="h-5 w-5" />
-            </Button>
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="shrink-0">
+            <Menu className="h-5 w-5" />
+          </Button>
         </div>
       )}
 
@@ -53,21 +53,21 @@ export function Sidebar() {
               />
             </div>
             <div className="flex gap-2">
-              <Button 
-                variant={filterStatus === 'All' ? 'default' : 'outline'} 
-                size="sm" 
+              <Button
+                variant={filterStatus === 'All' ? 'default' : 'outline'}
+                size="sm"
                 className="flex-1 text-xs"
                 onClick={() => setFilterStatus('All')}
               >All</Button>
-              <Button 
-                variant={filterStatus === 'Active' ? 'default' : 'outline'} 
-                size="sm" 
+              <Button
+                variant={filterStatus === 'Active' ? 'default' : 'outline'}
+                size="sm"
                 className={`flex-1 text-xs ${filterStatus === 'Active' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}`}
                 onClick={() => setFilterStatus('Active')}
               >Active</Button>
-              <Button 
-                variant={filterStatus === 'Offline' ? 'default' : 'outline'} 
-                size="sm" 
+              <Button
+                variant={filterStatus === 'Offline' ? 'default' : 'outline'}
+                size="sm"
                 className={`flex-1 text-xs ${filterStatus === 'Offline' ? 'bg-destructive/90 hover:bg-destructive text-white' : ''}`}
                 onClick={() => setFilterStatus('Offline')}
               >Offline</Button>
@@ -78,15 +78,21 @@ export function Sidebar() {
         <nav className="space-y-2 px-2 flex-1 mt-4">
           <Link to="/">
             <Button variant={location.pathname === '/' ? 'secondary' : 'ghost'} className={`w-full justify-start ${!isSidebarOpen && 'px-0 justify-center'}`}>
-               <Map className={`h-5 w-5 ${isSidebarOpen ? 'mr-3' : ''} shrink-0`} />
-               {isSidebarOpen && "Command Center"}
+              <Map className={`h-5 w-5 ${isSidebarOpen ? 'mr-3' : ''} shrink-0`} />
+              {isSidebarOpen && "Command Center"}
             </Button>
           </Link>
           <Link to="/trees">
-             <Button variant={location.pathname === '/trees' ? 'secondary' : 'ghost'} className={`w-full justify-start ${!isSidebarOpen && 'px-0 justify-center'}`}>
-                <TreePine className={`h-5 w-5 ${isSidebarOpen ? 'mr-3' : ''} shrink-0`} />
-                {isSidebarOpen && "Tagged Trees"}
-             </Button>
+            <Button variant={location.pathname === '/trees' ? 'secondary' : 'ghost'} className={`w-full justify-start ${!isSidebarOpen && 'px-0 justify-center'}`}>
+              <TreePine className={`h-5 w-5 ${isSidebarOpen ? 'mr-3' : ''} shrink-0`} />
+              {isSidebarOpen && "Tagged Trees"}
+            </Button>
+          </Link>
+          <Link to="/areas">
+            <Button variant={location.pathname === '/areas' ? 'secondary' : 'ghost'} className={`w-full justify-start ${!isSidebarOpen && 'px-0 justify-center'}`}>
+              <Layers className={`h-5 w-5 ${isSidebarOpen ? 'mr-3' : ''} shrink-0`} />
+              {isSidebarOpen && "Areas"}
+            </Button>
           </Link>
           <Link to="/settings">
             <Button variant={location.pathname === '/settings' ? 'secondary' : 'ghost'} className={`w-full justify-start ${!isSidebarOpen && 'px-0 justify-center'}`}>
@@ -96,11 +102,11 @@ export function Sidebar() {
           </Link>
         </nav>
       </div>
-      
+
       {isSidebarOpen && (
-         <div className="p-4 border-t text-xs text-muted-foreground text-center">
-            Bantay Bakir MVP v1.0
-         </div>
+        <div className="p-4 border-t text-xs text-muted-foreground text-center">
+          Bantay Bakir MVP v1.0
+        </div>
       )}
     </aside>
   )

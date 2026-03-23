@@ -32,7 +32,7 @@ export default function InteractiveMap() {
   const callbacksRef = useRef({ setActiveSite: (_: any) => {}, setActiveTagArea: (_: any) => {} })
   
   const { theme } = useTheme()
-  const { setActiveSite, filterStatus, searchQuery, activeSite, sites, tagAreas, setActiveTagArea } = useAppStore()
+  const { setActiveSite, filterStatus, searchQuery, activeSite, sites, tagAreas, setActiveTagArea, activeTagArea } = useAppStore()
 
   // Keep callbacks ref current so the map init handler never goes stale
   callbacksRef.current = { setActiveSite, setActiveTagArea }
@@ -129,6 +129,15 @@ export default function InteractiveMap() {
     })
 
   }, [filterStatus, searchQuery, setActiveSite, activeSite, sites, tagAreas])
+
+  // Pan & fit to active tag area when it changes (e.g. from Areas page Locate button)
+  useEffect(() => {
+    if (leafletMap.current && activeTagArea && activeTagArea.polygon?.length > 0) {
+      const latLngs = activeTagArea.polygon.map(p => [p.latitude, p.longitude] as [number, number])
+      const bounds = L.latLngBounds(latLngs)
+      leafletMap.current.fitBounds(bounds, { padding: [60, 60], animate: true, duration: 1 })
+    }
+  }, [activeTagArea])
 
   // Update view when active site changes
   useEffect(() => {

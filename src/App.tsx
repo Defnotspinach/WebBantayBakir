@@ -4,6 +4,7 @@ import { AppLayout } from "./components/layout/AppLayout"
 import Dashboard from "./pages/Dashboard"
 import Settings from "./pages/Settings"
 import TaggedTrees from "./pages/TaggedTrees"
+import Areas from "./pages/Areas"
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/" element={<AppLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="trees" element={<TaggedTrees />} />
+            <Route path="areas" element={<Areas />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
