@@ -1,16 +1,23 @@
-# Bantay Bakir Web
+<img width="1867" height="912" alt="image" src="https://github.com/user-attachments/assets/6593e20b-6507-40fa-845b-d810ca0ddd54" /># Bantay Bakir Web
 
 A web dashboard for monitoring tagged trees, mapped areas, and ranger activity.
 
 ## Project Photo / Screenshot
+- Splash Screen
+<img width="1873" height="909" alt="image" src="https://github.com/user-attachments/assets/62e34b7b-6517-4c84-a3b5-71f4cfeabc24" />
 
-Add your own photo by replacing the path below:
+- Map View
+<img width="1867" height="912" alt="image" src="https://github.com/user-attachments/assets/8658aa8f-9422-4709-be60-1a84f99ec18b" />
 
-```md
-![Bantay Bakir Dashboard](./public/your-photo.png)
-```
+- Tagged Trees
+<img width="1873" height="906" alt="image" src="https://github.com/user-attachments/assets/1f06ce9f-5643-49a4-84c7-1bea3345153a" />
 
-Tip: place your image in `public/` so it works automatically in Vite.
+- Areas
+<img width="1867" height="907" alt="image" src="https://github.com/user-attachments/assets/a7d5e975-2423-4cf4-bbc5-0f1935e5a28b" />
+
+- Active Ranger
+<img width="1873" height="911" alt="image" src="https://github.com/user-attachments/assets/d831d450-2ba4-4c8c-9d08-20074f14d645" />
+
 
 ## Features
 
