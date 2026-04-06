@@ -1,13 +1,15 @@
 import { createPortal } from 'react-dom'
-import { X, Ruler, Leaf, Globe } from "lucide-react"
-import { useAppStore, Site } from "@/store/useAppStore"
+import { X, Ruler, Leaf, Globe, Trash2 } from "lucide-react"
+import { useAppStore } from "@/store/useAppStore"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
 export function TreeReportModal() {
-  const { activeReportSite: activeSite, closeReport } = useAppStore()
+  const { activeReportSite: activeSite, closeReport, deleteTree } = useAppStore()
 
   if (!activeSite) return null
+  const dbhValue = Number.parseFloat(String(activeSite.dbh_cm ?? ""))
+  const needsCut = Number.isFinite(dbhValue) && dbhValue >= 30
 
   return createPortal(
     <div 
@@ -22,16 +24,28 @@ export function TreeReportModal() {
         <div className="flex items-center justify-between p-4 sm:p-6 border-b shrink-0">
            <div>
              <h2 className="text-2xl font-bold">Full Report: {activeSite.name}</h2>
-             <p className="text-muted-foreground text-sm mt-1">Detailed record for tree #{activeSite.id} from the Firebase Database.</p>
+             <p className="text-muted-foreground text-sm mt-1">Detailed record for tree #{activeSite.id}.</p>
            </div>
-           <Button variant="ghost" size="icon" onClick={closeReport} className="rounded-full">
-             <X className="h-5 w-5" />
-           </Button>
+           <div className="flex items-center gap-2">
+             <Button
+               variant="destructive"
+               size="sm"
+               className="gap-1.5"
+               onClick={() => deleteTree(activeSite.id)}
+             >
+               <Trash2 className="h-4 w-4" /> Delete
+             </Button>
+             <Button variant="ghost" size="icon" onClick={closeReport} className="rounded-full">
+               <X className="h-5 w-5" />
+             </Button>
+           </div>
         </div>
         
         <div className="p-4 sm:p-6 overflow-y-auto flex-1">
            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <img src={activeSite.imageUrl} className="w-full rounded-md object-cover h-64 shadow-sm" alt={activeSite.name} />
+              <div className="overflow-hidden rounded-xl">
+                <img src={activeSite.imageUrl} className="w-full h-64 object-cover block shadow-sm" alt={activeSite.name} />
+              </div>
               <div className="space-y-4">
                  <h3 className="font-semibold text-lg border-b pb-2">Status Information</h3>
                  <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
@@ -49,7 +63,14 @@ export function TreeReportModal() {
                     <span className="font-medium text-green-600">{activeSite.treeSurvivalRate}%</span>
                     
                     <span className="text-muted-foreground">DBH (Area Size):</span>
-                    <span className="font-medium">{activeSite.areaSize}</span>
+                    <div className="font-medium flex items-center gap-2">
+                      <span>{activeSite.areaSize}</span>
+                      {needsCut && (
+                        <span className="bg-red-500 text-white px-2 py-1 rounded text-xs">
+                          Needs Cut
+                        </span>
+                      )}
+                    </div>
                     
                     <span className="text-muted-foreground">Measurement m³:</span>
                     <span className="font-medium">{activeSite.cameraCount}</span>

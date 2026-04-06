@@ -2,11 +2,11 @@ import { useAppStore } from "@/store/useAppStore"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { MapPin, Target, Trees, Calendar, LocateFixed, Layers } from "lucide-react"
+import { MapPin, Target, Trees, Calendar, LocateFixed, Layers, Trash2 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
 export default function Areas() {
-  const { tagAreas, setActiveTagArea } = useAppStore()
+  const { tagAreas, setActiveTagArea, deleteTagArea, fetchTagAreas } = useAppStore()
   const navigate = useNavigate()
 
   const handleLocate = (area: any) => {
@@ -22,7 +22,10 @@ export default function Areas() {
         </div>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Tagged Areas</h1>
-          <p className="text-muted-foreground mt-1 text-sm">Geographic zones and plantation boundaries mapped from Firebase.</p>
+          <p className="text-muted-foreground mt-1 text-sm">Geographic zones and plantation boundaries mapped.</p>
+        </div>
+        <div className="ml-auto">
+          <Button variant="outline" size="sm" onClick={fetchTagAreas}>Refresh</Button>
         </div>
       </div>
 
@@ -101,12 +104,20 @@ export default function Areas() {
               </div>
 
               {/* Footer */}
-              <div className="px-5 pb-5">
+              <div className="px-5 pb-5 flex gap-2">
                 <Button
                   onClick={() => handleLocate(area)}
-                  className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+                  className="flex-1 gap-2 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
                 >
                   <LocateFixed className="h-4 w-4" /> View on Map
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => deleteTagArea(area.id)}
+                  className="px-3"
+                  aria-label={`Delete ${area.name}`}
+                >
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             </div>

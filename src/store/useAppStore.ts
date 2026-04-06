@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, deleteDoc, doc, getDocs } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
 export interface Site {
@@ -38,6 +38,14 @@ export interface TagArea {
   targetTreeCount: number;
 }
 
+export interface Ranger {
+  id: string
+  name: string
+  email: string
+  role: 'admin' | 'ranger'
+  status: 'active' | 'inactive'
+}
+
 interface AppState {
   isSidebarOpen: boolean
   toggleSidebar: () => void
@@ -54,11 +62,14 @@ interface AppState {
   setFilterStatus: (status: 'All' | 'Active' | 'Offline') => void
   sites: Site[]
   tagAreas: TagArea[]
+  rangers: Ranger[]
   rangersCount: number
   isLoading: boolean
   fetchSites: () => Promise<void>
   fetchTagAreas: () => Promise<void>
   fetchRangers: () => Promise<void>
+  deleteTree: (treeId: string) => Promise<void>
+  deleteTagArea: (areaId: string) => Promise<void>
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -77,6 +88,7 @@ export const useAppStore = create<AppState>((set) => ({
   setFilterStatus: (status) => set({ filterStatus: status }),
   sites: [],
   tagAreas: [],
+  rangers: [],
   rangersCount: 0,
   isLoading: false,
   fetchSites: async () => {
@@ -155,10 +167,68 @@ export const useAppStore = create<AppState>((set) => ({
   },
   fetchRangers: async () => {
     try {
-      const snap = await getDocs(collection(db, "users"));
-      set({ rangersCount: snap.size });
+      const snap = await getDocs(collection(db, "users"))
+      const rangers: Ranger[] = snap.docs
+        .map((docSnap) => {
+          const data = docSnap.data() as Record<string, unknown>
+          const roleRaw = String(data.role ?? data.userRole ?? data.accountType ?? "").toLowerCase()
+          const statusRaw = String(data.status ?? data.accountStatus ?? "").toLowerCase()
+          const isAdmin = roleRaw === "admin" || data.isAdmin === true
+          const isRanger = roleRaw === "ranger" || (!roleRaw && !isAdmin)
+
+          let status: Ranger["status"] = "active"
+          if (statusRaw === "inactive") status = "inactive"
+          if (statusRaw === "active") status = "active"
+          if (!statusRaw && data.isActive === false) status = "inactive"
+
+          if (!isRanger || isAdmin) return null
+
+          return {
+            id: docSnap.id,
+            name: String(data.name || data.fullName || data.displayName || "Unknown Ranger"),
+            email: String(data.email || "N/A"),
+            role: "ranger",
+            status
+          } as Ranger
+        })
+        .filter((ranger): ranger is Ranger => ranger !== null)
+      const activeCount = rangers.filter((ranger) => ranger.status === "active").length
+      set({ rangers, rangersCount: activeCount })
     } catch (error) {
       console.warn("Could not fetch rangers from 'users' collection.", error);
+    }
+  },
+  deleteTree: async (treeId) => {
+    const confirmDelete = window.confirm("Delete this tree?")
+    if (!confirmDelete) return
+
+    try {
+      await deleteDoc(doc(db, "trees", treeId))
+      set((state) => ({
+        sites: state.sites.filter((site) => site.id !== treeId),
+        activeSite: state.activeSite?.id === treeId ? null : state.activeSite,
+        activeReportSite: state.activeReportSite?.id === treeId ? null : state.activeReportSite
+      }))
+      window.alert("Tree deleted")
+    } catch (error) {
+      console.error("Failed to delete tree:", error)
+      window.alert("Failed to delete tree")
+    }
+  },
+  deleteTagArea: async (areaId) => {
+    const confirmDelete = window.confirm("Delete this area?")
+    if (!confirmDelete) return
+
+    try {
+      await deleteDoc(doc(db, "tagAreas", areaId))
+      set((state) => ({
+        tagAreas: state.tagAreas.filter((area) => area.id !== areaId),
+        activeTagArea: state.activeTagArea?.id === areaId ? null : state.activeTagArea
+      }))
+      window.alert("Area deleted")
+    } catch (error) {
+      console.error("Failed to delete area:", error)
+      window.alert("Failed to delete area")
     }
   }
 }))

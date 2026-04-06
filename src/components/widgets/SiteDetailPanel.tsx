@@ -8,12 +8,14 @@ export function SiteDetailPanel() {
   const { activeSite, setActiveSite, openReport } = useAppStore()
 
   if (!activeSite) return null
+  const dbhValue = Number.parseFloat(String(activeSite.dbh_cm ?? ""))
+  const needsCut = Number.isFinite(dbhValue) && dbhValue >= 30
 
   return (
       <Card className="w-96 pointer-events-auto bg-background/95 backdrop-blur border-border shadow-xl animate-in slide-in-from-right-8 overflow-hidden flex flex-col">
         {/* Photo Header */}
-        <div className="relative h-48 w-full shrink-0">
-          <img src={activeSite.imageUrl} alt={activeSite.name} className="w-full h-full object-cover object-center" />
+        <div className="relative h-48 w-full shrink-0 overflow-hidden rounded-xl">
+          <img src={activeSite.imageUrl} alt={activeSite.name} className="w-full h-full object-cover object-center block" />
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent pointer-events-none" />
           <Button 
              variant="secondary" 
@@ -31,6 +33,11 @@ export function SiteDetailPanel() {
                <Badge variant={activeSite.status === 'Active' ? 'default' : 'destructive'} className="shadow-sm">
                  {activeSite.status}
                </Badge>
+               {needsCut && (
+                 <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold">
+                   Needs Cut
+                 </span>
+               )}
                <span className="text-xs text-muted-foreground bg-background/80 px-1 rounded">ID: {activeSite.id}</span>
             </div>
             <CardTitle className="text-xl leading-tight">{activeSite.name}</CardTitle>

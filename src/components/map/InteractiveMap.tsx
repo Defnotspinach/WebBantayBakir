@@ -46,8 +46,8 @@ export default function InteractiveMap() {
   useEffect(() => {
     if (!mapRef.current) return
     if (!leafletMap.current) {
-      leafletMap.current = L.map(mapRef.current, { zoomControl: false }).setView([14.5995, 120.9842], 6)
-      L.tileLayer(tileUrl, { attribution: '&copy; CARTO' }).addTo(leafletMap.current)
+      leafletMap.current = L.map(mapRef.current, { zoomControl: false, attributionControl: false }).setView([14.5995, 120.9842], 6)
+      L.tileLayer(tileUrl, { attribution: '' }).addTo(leafletMap.current)
 
       // Clear selections when clicking the map background (not a marker/polygon)
       leafletMap.current.on('click', () => {

@@ -2,13 +2,21 @@ import { useTheme } from "@/components/theme-provider"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { useAppStore } from "@/store/useAppStore"
 
 export default function Settings() {
   const { theme, setTheme } = useTheme()
+  const { fetchSites, fetchTagAreas, fetchRangers } = useAppStore()
+
+  const handleRefresh = async () => {
+    await Promise.all([fetchSites(), fetchTagAreas(), fetchRangers()])
+  }
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 tracking-tight">Settings</h1>
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+      </div>
       
       <Card>
         <CardHeader>

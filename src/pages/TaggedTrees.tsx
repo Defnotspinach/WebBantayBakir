@@ -1,13 +1,13 @@
 import { useAppStore } from "@/store/useAppStore"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MapPin, TreePine, LocateFixed, FileText, AlertTriangle } from "lucide-react"
+import { MapPin, TreePine, LocateFixed, FileText, AlertTriangle, Trash2 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1448375240586-882707db888b?w=500&q=80"
 
 export default function TaggedTrees() {
-  const { sites, setActiveSite, openReport } = useAppStore()
+  const { sites, setActiveSite, openReport, deleteTree, fetchSites, isLoading } = useAppStore()
   const navigate = useNavigate()
 
   const handleLocate = (site: any) => {
@@ -29,9 +29,12 @@ export default function TaggedTrees() {
         </div>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Tagged Trees Directory</h1>
-          <p className="text-muted-foreground mt-1 text-sm">A complete database view of all monitored trees mapped from Firebase.</p>
+          <p className="text-muted-foreground mt-1 text-sm">A complete database view of all monitored trees mapped.</p>
         </div>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={fetchSites} disabled={isLoading}>
+            {isLoading ? "Refreshing..." : "Refresh"}
+          </Button>
           <Badge variant="secondary" className="text-sm px-3 py-1">{validSites.length} trees</Badge>
         </div>
       </div>
@@ -40,18 +43,20 @@ export default function TaggedTrees() {
         {validSites.map(site => {
           const imageUrl = site.imageUrl && !site.imageUrl.includes('keyboard') ? site.imageUrl : FALLBACK_IMAGE
           const dbh = site.dbh_cm || (site.areaSize?.replace(' cm DBH', '')) || '—'
+          const dbhNumber = Number.parseFloat(String(dbh))
+          const needsCut = Number.isFinite(dbhNumber) && dbhNumber >= 30
           const survival = site.treeSurvivalRate ?? 0
           const isOffline = site.status !== 'Active'
 
           return (
-            <div key={site.id} className="bg-card border border-border rounded-2xl overflow-hidden hover:shadow-xl hover:border-primary/40 transition-all duration-300 flex flex-col group">
+            <div key={site.id} className={`bg-card border rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col group ${needsCut ? 'border-red-500/80 hover:border-red-500' : 'border-border hover:border-primary/40'}`}>
               {/* Photo */}
-              <div className="relative h-44 w-full overflow-hidden">
+              <div className="relative h-44 w-full overflow-hidden rounded-xl">
                 <img
                   src={imageUrl}
                   alt={site.name}
                   onError={e => { (e.target as HTMLImageElement).src = FALLBACK_IMAGE }}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover block group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent pointer-events-none" />
                 <Badge
@@ -60,6 +65,11 @@ export default function TaggedTrees() {
                 >
                   {isOffline ? 'Offline' : 'Active'}
                 </Badge>
+                {needsCut && (
+                  <span className="absolute top-3 right-3 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold shadow-md">
+                    Needs Cut
+                  </span>
+                )}
               </div>
 
               {/* Body */}
@@ -104,6 +114,14 @@ export default function TaggedTrees() {
                   className="flex-1 text-xs gap-1.5 h-9"
                 >
                   <LocateFixed className="h-3.5 w-3.5" /> Locate
+                </Button>
+                <Button
+                  onClick={() => deleteTree(site.id)}
+                  variant="destructive"
+                  className="h-9 px-3"
+                  aria-label={`Delete ${site.name}`}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
             </div>

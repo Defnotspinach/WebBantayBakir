@@ -1,6 +1,5 @@
 import { KpiCards } from "@/components/widgets/KpiCards"
 import { SiteDetailPanel } from "@/components/widgets/SiteDetailPanel"
-import { AreaDetailPanel } from "@/components/widgets/AreaDetailPanel"
 import InteractiveMap from "@/components/map/InteractiveMap"
 
 export default function Dashboard() {

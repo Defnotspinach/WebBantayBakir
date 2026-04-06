@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom"
-import { Map, Settings, Menu, Search, TreePine, Layers } from "lucide-react"
+import { Map, Settings, Menu, Search, TreePine, Layers, ShieldCheck } from "lucide-react"
 import { useAppStore } from "@/store/useAppStore"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -13,16 +13,12 @@ export function Sidebar() {
       <div className="flex items-center justify-between p-4 border-b h-16">
         {isSidebarOpen && (
           <div className="flex items-center gap-2 font-bold text-xl text-primary drop-shadow-sm">
-            <div className="bg-primary p-1.5 rounded-lg shadow-sm">
-              <TreePine className="h-5 w-5 text-primary-foreground shrink-0" />
-            </div>
+            <img src="/icon.png" alt="Bantay Bakir Logo" className="w-10 h-10 shrink-0" />
             <span>Bantay Bakir</span>
           </div>
         )}
         {!isSidebarOpen && (
-          <div className="mx-auto bg-primary p-1.5 rounded-lg shadow-sm">
-            <TreePine className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <img src="/icon.png" alt="Bantay Bakir Logo" className="mx-auto w-10 h-10 shrink-0" />
         )}
         {isSidebarOpen && (
           <Button variant="ghost" size="icon" onClick={toggleSidebar} className="shrink-0">
@@ -79,7 +75,7 @@ export function Sidebar() {
           <Link to="/">
             <Button variant={location.pathname === '/' ? 'secondary' : 'ghost'} className={`w-full justify-start ${!isSidebarOpen && 'px-0 justify-center'}`}>
               <Map className={`h-5 w-5 ${isSidebarOpen ? 'mr-3' : ''} shrink-0`} />
-              {isSidebarOpen && "Command Center"}
+              {isSidebarOpen && "Map View"}
             </Button>
           </Link>
           <Link to="/trees">
@@ -94,6 +90,12 @@ export function Sidebar() {
               {isSidebarOpen && "Areas"}
             </Button>
           </Link>
+          <Link to="/rangers">
+            <Button variant={location.pathname === '/rangers' ? 'secondary' : 'ghost'} className={`w-full justify-start ${!isSidebarOpen && 'px-0 justify-center'}`}>
+              <ShieldCheck className={`h-5 w-5 ${isSidebarOpen ? 'mr-3' : ''} shrink-0`} />
+              {isSidebarOpen && "Active Rangers"}
+            </Button>
+          </Link>
           <Link to="/settings">
             <Button variant={location.pathname === '/settings' ? 'secondary' : 'ghost'} className={`w-full justify-start ${!isSidebarOpen && 'px-0 justify-center'}`}>
               <Settings className={`h-5 w-5 ${isSidebarOpen ? 'mr-3' : ''}`} />
@@ -105,7 +107,7 @@ export function Sidebar() {
 
       {isSidebarOpen && (
         <div className="p-4 border-t text-xs text-muted-foreground text-center">
-          Bantay Bakir MVP v1.0
+          Bantay Bakir Admin Panel
         </div>
       )}
     </aside>
