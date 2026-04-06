@@ -19,13 +19,13 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
         fade ? "opacity-0" : "opacity-100"
       }`}
     >
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex flex-col items-center gap-5">
         <img
           src="/icon.png"
           alt="Logo"
-          className="w-24 h-24 animate-pulse"
+          className="w-40 h-40 animate-pulse"
         />
-        <p className="text-green-400 text-lg font-semibold">
+        <p className="text-green-400 text-5xl font-bold tracking-wide">
           Bantay Bakir
         </p>
       </div>

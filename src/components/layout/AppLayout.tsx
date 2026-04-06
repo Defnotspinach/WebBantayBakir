@@ -3,15 +3,19 @@ import { Sidebar } from "./Sidebar"
 import { useAppStore } from "@/store/useAppStore"
 import { TreeReportModal } from "@/components/widgets/TreeReportModal"
 import { useEffect } from "react"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function AppLayout() {
   const { isSidebarOpen, fetchSites, fetchTagAreas, fetchRangers } = useAppStore()
+  const { isAdmin } = useAuth()
 
   useEffect(() => {
-    fetchSites()
-    fetchTagAreas()
-    fetchRangers()
-  }, [fetchSites, fetchTagAreas, fetchRangers])
+    void fetchSites()
+    void fetchTagAreas()
+    if (isAdmin) {
+      void fetchRangers()
+    }
+  }, [fetchSites, fetchTagAreas, fetchRangers, isAdmin])
 
   return (
     <div className="min-h-screen bg-background text-foreground flex overflow-hidden">

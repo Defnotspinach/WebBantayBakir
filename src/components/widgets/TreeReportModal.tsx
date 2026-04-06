@@ -3,13 +3,39 @@ import { X, Ruler, Leaf, Globe, Trash2 } from "lucide-react"
 import { useAppStore } from "@/store/useAppStore"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { useState } from "react"
+import { useAuth } from "@/contexts/AuthContext"
+import { useToast } from "@/contexts/ToastContext"
+import { getConditionCodeLabel, getTreeStatusLabel } from "@/lib/treeCondition"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 export function TreeReportModal() {
-  const { activeReportSite: activeSite, closeReport, deleteTree } = useAppStore()
+  const { activeReportSite: activeSite, closeReport, deleteTree, deletingTreeIds } = useAppStore()
+  const { user } = useAuth()
+  const { toast } = useToast()
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   if (!activeSite) return null
-  const dbhValue = Number.parseFloat(String(activeSite.dbh_cm ?? ""))
-  const needsCut = Number.isFinite(dbhValue) && dbhValue >= 30
+  const statusLabel = getTreeStatusLabel(activeSite.condition_code, activeSite.is_cut)
+  const isDeleting = deletingTreeIds.includes(activeSite.id)
+
+  const handleDelete = async () => {
+    try {
+      await deleteTree(activeSite.id, user?.email)
+      toast({ title: "Tree deleted successfully", variant: "success" })
+      setConfirmOpen(false)
+      closeReport()
+    } catch {
+      toast({ title: "Failed to delete tree", variant: "error" })
+    }
+  }
 
   return createPortal(
     <div 
@@ -31,9 +57,10 @@ export function TreeReportModal() {
                variant="destructive"
                size="sm"
                className="gap-1.5"
-               onClick={() => deleteTree(activeSite.id)}
+               disabled={isDeleting}
+               onClick={() => setConfirmOpen(true)}
              >
-               <Trash2 className="h-4 w-4" /> Delete
+               <Trash2 className="h-4 w-4" /> {isDeleting ? "Deleting..." : "Delete"}
              </Button>
              <Button variant="ghost" size="icon" onClick={closeReport} className="rounded-full">
                <X className="h-5 w-5" />
@@ -65,7 +92,7 @@ export function TreeReportModal() {
                     <span className="text-muted-foreground">DBH (Area Size):</span>
                     <div className="font-medium flex items-center gap-2">
                       <span>{activeSite.areaSize}</span>
-                      {needsCut && (
+                      {statusLabel === "Ready to Cut" && (
                         <span className="bg-red-500 text-white px-2 py-1 rounded text-xs">
                           Needs Cut
                         </span>
@@ -74,6 +101,12 @@ export function TreeReportModal() {
                     
                     <span className="text-muted-foreground">Measurement m³:</span>
                     <span className="font-medium">{activeSite.cameraCount}</span>
+
+                    <span className="text-muted-foreground">Condition Code:</span>
+                    <span className="font-medium">{getConditionCodeLabel(activeSite.condition_code)}</span>
+
+                    <span className="text-muted-foreground">Tree Status:</span>
+                    <span className="font-medium">{statusLabel}</span>
                     
                     <span className="text-muted-foreground">Recording Date:</span>
                     <span className="font-medium">{activeSite.lastPatrol}</span>
@@ -132,6 +165,24 @@ export function TreeReportModal() {
            </div>
         </div>
       </div>
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent onClick={(event) => event.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>Delete Tree</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this tree?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" disabled={isDeleting} onClick={() => void handleDelete()}>
+              {isDeleting ? "Deleting..." : "Confirm Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>,
     document.body
   )

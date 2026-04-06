@@ -4,14 +4,52 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { MapPin, Target, Trees, Calendar, LocateFixed, Layers, Trash2 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { useState } from "react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { useAuth } from "@/contexts/AuthContext"
+import { useToast } from "@/contexts/ToastContext"
 
 export default function Areas() {
-  const { tagAreas, setActiveTagArea, deleteTagArea, fetchTagAreas } = useAppStore()
+  const { tagAreas, setActiveTagArea, deleteTagArea, fetchTagAreas, deletingAreaIds } = useAppStore()
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const { user } = useAuth()
+  const { toast } = useToast()
   const navigate = useNavigate()
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      await fetchTagAreas()
+      toast({ title: "Areas refreshed", variant: "success" })
+    } catch {
+      toast({ title: "Failed to refresh areas", variant: "error" })
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
 
   const handleLocate = (area: any) => {
     setActiveTagArea(area)
     navigate('/')
+  }
+
+  const handleDelete = async () => {
+    if (!pendingDelete) return
+    try {
+      await deleteTagArea(pendingDelete.id, user?.email)
+      toast({ title: "Area deleted successfully", variant: "success" })
+      setPendingDelete(null)
+    } catch {
+      toast({ title: "Failed to delete area", variant: "error" })
+    }
   }
 
   return (
@@ -25,7 +63,9 @@ export default function Areas() {
           <p className="text-muted-foreground mt-1 text-sm">Geographic zones and plantation boundaries mapped.</p>
         </div>
         <div className="ml-auto">
-          <Button variant="outline" size="sm" onClick={fetchTagAreas}>Refresh</Button>
+          <Button variant="outline" size="sm" onClick={() => void handleRefresh()} disabled={isRefreshing}>
+            {isRefreshing ? "Refreshing..." : "Refresh"}
+          </Button>
         </div>
       </div>
 
@@ -113,7 +153,8 @@ export default function Areas() {
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={() => deleteTagArea(area.id)}
+                  onClick={() => setPendingDelete({ id: area.id, name: area.name })}
+                  disabled={deletingAreaIds.includes(area.id)}
                   className="px-3"
                   aria-label={`Delete ${area.name}`}
                 >
@@ -132,6 +173,31 @@ export default function Areas() {
           </div>
         )}
       </div>
+
+      <Dialog open={Boolean(pendingDelete)} onOpenChange={(open) => !open && setPendingDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Area</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this area?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingDelete(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={pendingDelete ? deletingAreaIds.includes(pendingDelete.id) : false}
+              onClick={() => void handleDelete()}
+            >
+              {pendingDelete && deletingAreaIds.includes(pendingDelete.id)
+                ? "Deleting..."
+                : "Confirm Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -3,13 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { useAppStore } from "@/store/useAppStore"
 import { Badge } from "@/components/ui/badge"
+import { getConditionCodeLabel, getTreeStatusLabel } from "@/lib/treeCondition"
 
 export function SiteDetailPanel() {
   const { activeSite, setActiveSite, openReport } = useAppStore()
 
   if (!activeSite) return null
-  const dbhValue = Number.parseFloat(String(activeSite.dbh_cm ?? ""))
-  const needsCut = Number.isFinite(dbhValue) && dbhValue >= 30
+  const statusLabel = getTreeStatusLabel(activeSite.condition_code, activeSite.is_cut)
 
   return (
       <Card className="w-96 pointer-events-auto bg-background/95 backdrop-blur border-border shadow-xl animate-in slide-in-from-right-8 overflow-hidden flex flex-col">
@@ -33,11 +33,9 @@ export function SiteDetailPanel() {
                <Badge variant={activeSite.status === 'Active' ? 'default' : 'destructive'} className="shadow-sm">
                  {activeSite.status}
                </Badge>
-               {needsCut && (
-                 <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold">
-                   Needs Cut
-                 </span>
-               )}
+               <span className="bg-muted text-foreground px-2 py-1 rounded text-xs font-semibold">
+                 {statusLabel}
+               </span>
                <span className="text-xs text-muted-foreground bg-background/80 px-1 rounded">ID: {activeSite.id}</span>
             </div>
             <CardTitle className="text-xl leading-tight">{activeSite.name}</CardTitle>
@@ -54,8 +52,10 @@ export function SiteDetailPanel() {
                    <span className="font-semibold text-lg truncate" title={activeSite.areaSize}>{activeSite.areaSize}</span>
                 </div>
                 <div className="flex flex-col bg-muted/50 p-3 rounded-lg overflow-hidden">
-                   <span className="text-muted-foreground mb-1 text-xs">Survival Rate</span>
-                   <span className="font-semibold text-lg text-green-600 dark:text-green-500">{activeSite.treeSurvivalRate}%</span>
+                   <span className="text-muted-foreground mb-1 text-xs">Condition</span>
+                   <span className="font-semibold text-sm truncate" title={getConditionCodeLabel(activeSite.condition_code)}>
+                     {getConditionCodeLabel(activeSite.condition_code)}
+                   </span>
                 </div>
              </div>
 
