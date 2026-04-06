@@ -1,4 +1,4 @@
-<img width="1867" height="912" alt="image" src="https://github.com/user-attachments/assets/6593e20b-6507-40fa-845b-d810ca0ddd54" /># Bantay Bakir Web
+# Bantay Bakir Web
 
 A web dashboard for monitoring tagged trees, mapped areas, and ranger activity.
 
