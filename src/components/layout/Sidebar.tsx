@@ -29,8 +29,7 @@ const adminNav: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/admin/dashboard", adminOnly: true },
   { label: "Trees", icon: TreePine, to: "/admin/trees", adminOnly: true },
   { label: "Areas", icon: Layers, to: "/admin/areas", adminOnly: true },
-  { label: "Rangers", icon: ShieldCheck, to: "/admin/rangers", adminOnly: true },
-  { label: "Audit Logs", icon: ClipboardList, to: "/admin/audit-logs", adminOnly: true },
+  { label: "Rangers", icon: ShieldCheck, to: "/admin/rangers", adminOnly: true }
 ]
 
 export function Sidebar() {
