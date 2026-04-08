@@ -1,6 +1,6 @@
 const parseAdminEmails = () => {
   const fromEnv = import.meta.env.VITE_ADMIN_EMAILS as string | undefined
-  if (!fromEnv) return ["youradmin@email.com"]
+  if (!fromEnv) return []
   return fromEnv
     .split(",")
     .map((email) => email.trim().toLowerCase())

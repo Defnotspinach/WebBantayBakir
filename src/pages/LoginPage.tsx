@@ -9,6 +9,10 @@ import { useToast } from "@/contexts/ToastContext"
 import { Eye, EyeOff, Lock, Mail } from "lucide-react"
 import { FirebaseError } from "firebase/app"
 
+const hasCode = (error: unknown): error is { code: string; message?: string } => {
+  return typeof error === "object" && error !== null && "code" in error
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -23,6 +27,14 @@ export default function LoginPage() {
   const from = (location.state as { from?: string } | null)?.from
 
   const getAuthErrorMessage = (submitError: unknown) => {
+    if (hasCode(submitError) && submitError.code === "security/rate-limit-exceeded") {
+      return submitError.message || "Too many attempts. Please wait and try again."
+    }
+
+    if (hasCode(submitError) && submitError.code === "security/invalid-input") {
+      return submitError.message || "Invalid input."
+    }
+
     if (submitError instanceof FirebaseError) {
       const rawMessage = submitError.message.toUpperCase()
 
@@ -133,6 +145,7 @@ export default function LoginPage() {
                   autoComplete="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
+                  maxLength={254}
                   className="pl-9 bg-slate-950/80 border-slate-700 text-slate-100"
                   placeholder="email address"
                   required
@@ -149,6 +162,7 @@ export default function LoginPage() {
                   autoComplete="current-password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
+                  maxLength={128}
                   className="pl-9 pr-10 bg-slate-950/80 border-slate-700 text-slate-100"
                   placeholder="Password"
                   required

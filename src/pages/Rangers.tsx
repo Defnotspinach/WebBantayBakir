@@ -7,6 +7,7 @@ import { isAdminEmail } from "@/lib/auth"
 import { logAudit } from "@/lib/audit"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/contexts/ToastContext"
+import { assertValidEmail, SecurityValidationError, sanitizeText } from "@/lib/security"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -99,23 +100,32 @@ export default function Rangers() {
       toast({ title: "Name and email are required", variant: "error" })
       return
     }
-    if (isAdminEmail(formState.email)) {
-      toast({ title: "Admin accounts are excluded from ranger records", variant: "error" })
-      return
-    }
 
     setIsSubmitting(true)
     try {
+      const sanitizedName = sanitizeText(formState.name, 120)
+      const sanitizedEmail = assertValidEmail(formState.email)
+      const sanitizedWorkerId = sanitizeText(formState.workerId, 50)
+      const sanitizedRole = sanitizeText(formState.role || "ranger", 30).toLowerCase()
+
+      if (!sanitizedName || !sanitizedEmail) {
+        throw new SecurityValidationError("Name and email are required")
+      }
+
+      if (isAdminEmail(sanitizedEmail)) {
+        throw new SecurityValidationError("Admin accounts are excluded from ranger records")
+      }
+
       if (formState.id) {
         const targetCollection = formState.sourceCollection ?? "rangers"
         const ref = doc(db, targetCollection, formState.id)
         const beforeSnap = await getDoc(ref)
         const beforeData = beforeSnap.exists() ? beforeSnap.data() : null
         const afterData = {
-          name: formState.name.trim(),
-          email: formState.email.trim(),
-          workerId: formState.workerId.trim(),
-          role: formState.role.trim() || "ranger",
+          name: sanitizedName,
+          email: sanitizedEmail,
+          workerId: sanitizedWorkerId,
+          role: sanitizedRole || "ranger",
           verificationStatus: formState.verificationStatus,
           verified: formState.verificationStatus === "verified",
           status: formState.status,
@@ -132,10 +142,10 @@ export default function Rangers() {
         toast({ title: "Ranger updated successfully", variant: "success" })
       } else {
         const afterData = {
-          name: formState.name.trim(),
-          email: formState.email.trim(),
-          workerId: formState.workerId.trim(),
-          role: formState.role.trim() || "ranger",
+          name: sanitizedName,
+          email: sanitizedEmail,
+          workerId: sanitizedWorkerId,
+          role: sanitizedRole || "ranger",
           verificationStatus: formState.verificationStatus,
           verified: formState.verificationStatus === "verified",
           status: formState.status,
@@ -159,8 +169,12 @@ export default function Rangers() {
       setIsFormOpen(false)
       setFormState(initialForm)
       await fetchRangers()
-    } catch {
-      toast({ title: "Failed to save ranger", variant: "error" })
+    } catch (error) {
+      const message =
+        error instanceof SecurityValidationError
+          ? error.message
+          : "Failed to save ranger"
+      toast({ title: message, variant: "error" })
     } finally {
       setIsSubmitting(false)
     }
@@ -370,6 +384,7 @@ export default function Rangers() {
               <Input
                 id="ranger-name"
                 value={formState.name}
+                maxLength={120}
                 onChange={(event) => setFormState((prev) => ({ ...prev, name: event.target.value }))}
               />
             </div>
@@ -379,6 +394,7 @@ export default function Rangers() {
                 id="ranger-email"
                 type="email"
                 value={formState.email}
+                maxLength={254}
                 onChange={(event) => setFormState((prev) => ({ ...prev, email: event.target.value }))}
               />
             </div>
@@ -387,6 +403,7 @@ export default function Rangers() {
               <Input
                 id="ranger-worker-id"
                 value={formState.workerId}
+                maxLength={50}
                 onChange={(event) => setFormState((prev) => ({ ...prev, workerId: event.target.value }))}
               />
             </div>
@@ -423,6 +440,7 @@ export default function Rangers() {
               <Input
                 id="ranger-role"
                 value={formState.role}
+                maxLength={30}
                 onChange={(event) => setFormState((prev) => ({ ...prev, role: event.target.value }))}
                 placeholder="ranger"
               />

@@ -9,6 +9,18 @@ import {
   type User,
 } from "firebase/auth"
 import { auth } from "@/lib/firebase"
+import {
+  assertValidEmail,
+  assertValidPassword,
+  assertWithinRateLimit,
+  trackRateLimitAttempt,
+} from "@/lib/security"
+import { isAdminEmail } from "@/lib/auth"
+
+const LOGIN_RATE_LIMIT = {
+  maxAttempts: 5,
+  windowMs: 15 * 60 * 1000,
+}
 
 interface AuthContextValue {
   user: User | null
@@ -34,14 +46,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = async (email: string, password: string) => {
-    const normalizedEmail = email.trim()
-    await signInWithEmailAndPassword(auth, normalizedEmail, password)
+    const normalizedEmail = assertValidEmail(email)
+    const normalizedPassword = assertValidPassword(password)
+    const bucketKey = `login:email:${normalizedEmail}`
+
+    assertWithinRateLimit(bucketKey, LOGIN_RATE_LIMIT)
+
+    try {
+      await signInWithEmailAndPassword(auth, normalizedEmail, normalizedPassword)
+      trackRateLimitAttempt(bucketKey, LOGIN_RATE_LIMIT, true)
+    } catch (error) {
+      trackRateLimitAttempt(bucketKey, LOGIN_RATE_LIMIT, false)
+      throw error
+    }
   }
 
   const loginWithGoogle = async () => {
+    const bucketKey = "login:google"
+    assertWithinRateLimit(bucketKey, LOGIN_RATE_LIMIT)
+
     const provider = new GoogleAuthProvider()
     provider.setCustomParameters({ prompt: "select_account" })
-    await signInWithPopup(auth, provider)
+    try {
+      await signInWithPopup(auth, provider)
+      trackRateLimitAttempt(bucketKey, LOGIN_RATE_LIMIT, true)
+    } catch (error) {
+      trackRateLimitAttempt(bucketKey, LOGIN_RATE_LIMIT, false)
+      throw error
+    }
   }
 
   const logout = async () => {
@@ -52,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       isLoading,
-      isAdmin: !!user,
+      isAdmin: isAdminEmail(user?.email),
       login,
       loginWithGoogle,
       logout,

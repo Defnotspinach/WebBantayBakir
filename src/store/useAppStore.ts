@@ -18,6 +18,7 @@ import { db } from "@/lib/firebase"
 import { isAdminEmail } from "@/lib/auth"
 import { logAudit } from "@/lib/audit"
 import { normalizeConditionCode, normalizeIsCut, resolveTreeConditionCodeFromData, type TreeConditionCode } from "@/lib/treeCondition"
+import { sanitizeAndValidatePayload } from "@/lib/security"
 
 export interface Site {
   id: string
@@ -351,7 +352,10 @@ export const useAppStore = create<AppState>((set) => ({
   openReport: (site) => set({ activeReportSite: site }),
   closeReport: () => set({ activeReportSite: null }),
   searchQuery: "",
-  setSearchQuery: (queryValue) => set({ searchQuery: queryValue }),
+  setSearchQuery: (queryValue) =>
+    set({
+      searchQuery: queryValue.slice(0, 120),
+    }),
   filterStatus: "All",
   setFilterStatus: (status) => set({ filterStatus: status }),
   sites: [],
@@ -449,10 +453,11 @@ export const useAppStore = create<AppState>((set) => ({
     }
   },
   createTree: async (payload, userEmail) => {
+    const sanitizedPayload = sanitizeAndValidatePayload(payload)
     const data = {
-      ...payload,
-      condition_code: normalizeConditionCode(payload["condition_code"]),
-      is_cut: normalizeIsCut(payload["is_cut"], payload["isCut"]),
+      ...sanitizedPayload,
+      condition_code: normalizeConditionCode(sanitizedPayload["condition_code"]),
+      is_cut: normalizeIsCut(sanitizedPayload["is_cut"], sanitizedPayload["isCut"]),
       createdBy: userEmail ?? "unknown",
       createdAt: serverTimestamp(),
     }
@@ -471,18 +476,19 @@ export const useAppStore = create<AppState>((set) => ({
     return created.id
   },
   updateTree: async (treeId, payload, userEmail) => {
+    const sanitizedPayload = sanitizeAndValidatePayload(payload)
     const ref = doc(db, "trees", treeId)
     const beforeSnap = await getDoc(ref)
     const beforeData = beforeSnap.exists() ? beforeSnap.data() : null
     const nextPayload = {
-      ...payload,
-      ...(Object.prototype.hasOwnProperty.call(payload, "condition_code")
-        ? { condition_code: normalizeConditionCode(payload["condition_code"]) }
+      ...sanitizedPayload,
+      ...(Object.prototype.hasOwnProperty.call(sanitizedPayload, "condition_code")
+        ? { condition_code: normalizeConditionCode(sanitizedPayload["condition_code"]) }
         : {}),
-      ...(Object.prototype.hasOwnProperty.call(payload, "is_cut") || Object.prototype.hasOwnProperty.call(payload, "isCut")
+      ...(Object.prototype.hasOwnProperty.call(sanitizedPayload, "is_cut") || Object.prototype.hasOwnProperty.call(sanitizedPayload, "isCut")
         ? {
-            is_cut: normalizeIsCut(payload["is_cut"], payload["isCut"]),
-            isCut: normalizeIsCut(payload["is_cut"], payload["isCut"]),
+            is_cut: normalizeIsCut(sanitizedPayload["is_cut"], sanitizedPayload["isCut"]),
+            isCut: normalizeIsCut(sanitizedPayload["is_cut"], sanitizedPayload["isCut"]),
           }
         : {}),
     }
@@ -497,8 +503,9 @@ export const useAppStore = create<AppState>((set) => ({
     })
   },
   createArea: async (payload, userEmail) => {
+    const sanitizedPayload = sanitizeAndValidatePayload(payload)
     const data = {
-      ...payload,
+      ...sanitizedPayload,
       createdAt: serverTimestamp(),
       lastUpdated: serverTimestamp(),
     }
@@ -518,11 +525,12 @@ export const useAppStore = create<AppState>((set) => ({
     return created.id
   },
   updateArea: async (areaId, payload, userEmail) => {
+    const sanitizedPayload = sanitizeAndValidatePayload(payload)
     const ref = doc(db, "areas", areaId)
     const beforeSnap = await getDoc(ref)
     const beforeData = beforeSnap.exists() ? beforeSnap.data() : null
     const nextPayload = {
-      ...payload,
+      ...sanitizedPayload,
       lastUpdated: serverTimestamp(),
     }
     await updateDoc(ref, nextPayload as UpdateData<DocumentData>)
